@@ -1,40 +1,52 @@
-name: Dev Branch CI/CD
+name: CI - Dev Branch
 
 on:
   push:
-    branches:
-      - dev
+    branches: ["dev"]
   pull_request:
-    branches:
-      - dev
+    branches: ["dev"]
+  workflow_dispatch:
 
 jobs:
-  test-and-build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # Step 1: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '18'
 
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
+      # Step 4: Run linting
+      - name: Run Linting
+        run: npm run lint
+
+      # Step 5: Run tests (Jest)
+      - name: Run Tests
         run: npm test
 
-      - name: Build Next.js app
+      # Step 6: Build Next.js project
+      - name: Build project
         run: npm run build
 
+      # Step 7: Build Docker image for the project
       - name: Build Docker image
         run: |
-          docker build -t nextjs-app:dev .
-          docker save nextjs-app:dev > nextjs-app.tar
+          docker build -t nextjs-app-dev .
+          docker save nextjs-app-dev > nextjs-app.tar
 
+      # Step 8: Upload Docker image artifact (optional)
       - name: Upload Docker image artifact
         uses: actions/upload-artifact@v4
         with:
